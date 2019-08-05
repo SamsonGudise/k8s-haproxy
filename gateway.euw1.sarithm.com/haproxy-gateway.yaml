@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-kubeapi-deployment
+  namespace: l4proxy
+  labels:
+    app: gateway-kubeapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-kubeapi
+  template:
+    metadata:
+      labels:
+        app: gateway-kubeapi
+    spec:
+      containers:
+      - name: gateway-kubeapi
+        image: samsonbabu/haproxy:0.2
+        ports:
+        - containerPort: 443
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/local/etc/haproxy
+      volumes:
+      - name: config-volume
+        configMap:
+          name: gateway-kubeapi-config
+          items:
+          - key: haproxy.cfg
+            path: haproxy.cfg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-kubeapi
+  namespace: l4proxy
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+  - 67.172.159.163/32
+  - 1.2.3.4/32
+  selector:
+    app: gateway-kubeapi
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 443
+---
