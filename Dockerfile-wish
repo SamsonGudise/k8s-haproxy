@@ -1,0 +1,6 @@
+FROM haproxy:2.0
+MAINTAINER Samson Gudise sgudise@sarithm.com
+RUN apt-get update
+RUN apt-get install -y net-tools procps curl
+RUN groupadd -r haproxy && useradd --no-log-init -r -g haproxy haproxy
+COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
